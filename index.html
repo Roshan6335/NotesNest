@@ -70,7 +70,7 @@
       document.getElementById('otpModal').classList.add('open');
     });
 
-    document.getElementById('verifyOtp').addEventListener('click', () => {
+    document.getElementById('verifyOtp').addEventListener('click', async () => {
       const entered = document.getElementById('otpInput').value.trim();
       const otpError = document.getElementById('otpError');
 
@@ -80,6 +80,7 @@
       }
 
       setSession({ ...pendingUser, loggedIn: true });
+      await registerUserLogin(pendingUser);
       window.location.href = pendingUser.isAdmin ? 'admin.html' : 'home.html';
     });
 
