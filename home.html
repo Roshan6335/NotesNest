@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteNest | Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div>
+        <div class="logo">NoteNest</div>
+        <div class="small" id="welcomeText"></div>
+      </div>
+      <div class="actions">
+        <button id="themeToggle" class="btn btn-secondary" type="button">🌓 Dark Mode</button>
+        <button id="logoutBtn" class="btn btn-danger" type="button">Logout</button>
+      </div>
+    </header>
+
+    <section class="card" style="padding:1.2rem;">
+      <h2 style="margin-top:0;">Choose your subject</h2>
+      <div class="subject-grid">
+        <article class="card subject-card" id="scienceCard">
+          <h3 style="margin-top:0;">Science</h3>
+          <p class="small">Class 9 chapters, notes and downloadable PDFs.</p>
+          <span class="badge">Tap to open</span>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer">Made by Roshan with love ❤️</footer>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    const session = getSession();
+    if (!session?.loggedIn) window.location.href = 'index.html';
+
+    document.getElementById('welcomeText').textContent = `Welcome, ${session?.name || 'Student'}!`;
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    document.getElementById('scienceCard').addEventListener('click', () => {
+      window.location.href = 'science.html';
+    });
+
+    initThemeToggle();
+  </script>
+</body>
+</html>

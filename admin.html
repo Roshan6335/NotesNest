@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteNest | Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div>
+        <div class="logo">Admin Panel</div>
+        <div class="small" id="adminEmail"></div>
+      </div>
+      <div class="actions">
+        <button id="themeToggle" class="btn btn-secondary" type="button">🌓 Dark Mode</button>
+        <button class="btn btn-danger" type="button" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <section class="card" style="padding:1rem 1.1rem;margin-bottom:1rem;">
+      <h3 style="margin-top:0;">Upload Chapter PDF</h3>
+      <div class="field">
+        <label for="chapterName">Chapter Name</label>
+        <select id="chapterName"></select>
+      </div>
+      <div class="field">
+        <label for="pdfFile">PDF File</label>
+        <input id="pdfFile" type="file" accept="application/pdf" />
+      </div>
+      <button id="uploadBtn" class="btn btn-primary" type="button">Upload</button>
+      <p id="uploadMessage" class="error"></p>
+    </section>
+
+    <section class="card" style="padding:1rem;overflow:auto;">
+      <h3 style="margin-top:0;">Uploaded Chapters</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Chapter</th>
+            <th>File Name</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="uploadList"></tbody>
+      </table>
+    </section>
+
+    <footer class="footer">Made by Roshan with love ❤️</footer>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    const session = getSession();
+    if (!session?.loggedIn || !session?.isAdmin || session.email !== ADMIN_EMAIL) {
+      window.location.href = 'index.html';
+    }
+
+    document.getElementById('adminEmail').textContent = `Logged in as: ${session.email}`;
+
+    const chapterSelect = document.getElementById('chapterName');
+    SCIENCE_CHAPTERS.forEach((chapter) => {
+      const option = document.createElement('option');
+      option.value = chapter;
+      option.textContent = chapter;
+      chapterSelect.appendChild(option);
+    });
+
+    function refreshUploadList() {
+      const map = getPdfMap();
+      const tbody = document.getElementById('uploadList');
+      tbody.innerHTML = '';
+
+      SCIENCE_CHAPTERS.forEach((chapter) => {
+        if (!map[chapter]) return;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${chapter}</td>
+          <td>${map[chapter].filename}</td>
+          <td><button class="btn btn-danger" type="button">Delete</button></td>
+        `;
+        row.querySelector('button').addEventListener('click', () => {
+          const updated = getPdfMap();
+          delete updated[chapter];
+          setPdfMap(updated);
+          refreshUploadList();
+        });
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+      const file = document.getElementById('pdfFile').files[0];
+      const chapter = chapterSelect.value;
+      const msg = document.getElementById('uploadMessage');
+
+      if (!file || file.type !== 'application/pdf') {
+        msg.textContent = 'Please choose a valid PDF file.';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const map = getPdfMap();
+        map[chapter] = {
+          filename: file.name,
+          base64: String(reader.result),
+          uploadedAt: new Date().toISOString()
+        };
+        setPdfMap(map);
+        msg.textContent = 'Upload successful.';
+        msg.classList.add('success');
+        document.getElementById('pdfFile').value = '';
+        refreshUploadList();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    initThemeToggle();
+    refreshUploadList();
+  </script>
+</body>
+</html>

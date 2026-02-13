@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteNest | Science Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div>
+        <div class="logo">NoteNest</div>
+        <div class="small">Science Chapters</div>
+      </div>
+      <div class="actions">
+        <button id="themeToggle" class="btn btn-secondary" type="button">🌓 Dark Mode</button>
+        <button class="btn btn-secondary" type="button" onclick="window.location.href='home.html'">Back</button>
+        <button class="btn btn-danger" type="button" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <section class="card" style="padding:1rem;overflow:auto;">
+      <table class="table" id="chapterTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Chapter Name</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <footer class="footer">Made by Roshan with love ❤️</footer>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    const session = getSession();
+    if (!session?.loggedIn) window.location.href = 'index.html';
+
+    function renderScienceChapters() {
+      const map = getPdfMap();
+      const body = document.querySelector('#chapterTable tbody');
+      body.innerHTML = '';
+
+      SCIENCE_CHAPTERS.forEach((chapter, index) => {
+        const data = map[chapter];
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${chapter}</td>
+          <td>${data ? '<span class="success">Uploaded</span>' : '<span class="error">Not Uploaded</span>'}</td>
+          <td class="actions">
+            <button class="btn btn-secondary" data-action="view">View</button>
+            <button class="btn btn-primary" data-action="download">Download</button>
+          </td>
+        `;
+
+        const [viewBtn, downloadBtn] = row.querySelectorAll('button');
+        const disabled = !data;
+        viewBtn.disabled = disabled;
+        downloadBtn.disabled = disabled;
+        if (disabled) {
+          viewBtn.classList.add('btn-secondary');
+          downloadBtn.classList.add('btn-secondary');
+        }
+
+        viewBtn.addEventListener('click', () => {
+          const newTab = window.open(data.base64, '_blank');
+          if (!newTab) alert('Please allow popups to view PDF.');
+        });
+
+        downloadBtn.addEventListener('click', () => {
+          const a = document.createElement('a');
+          a.href = data.base64;
+          a.download = data.filename || `${chapter}.pdf`;
+          a.click();
+        });
+
+        body.appendChild(row);
+      });
+    }
+
+    initThemeToggle();
+    renderScienceChapters();
+  </script>
+</body>
+</html>
