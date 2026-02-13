@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes | Class 9 CBSE Portal</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           1. MODERN CSS VARIABLES & RESET
+           ========================================= */
+        :root {
+            /* Colorful & Professional Palette */
+            --primary-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-grad: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+            --accent: #ff6b6b;
+            --text-main: #2d3436;
+            --text-sec: #636e72;
+            --bg-body: #f7f9fc;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+            --radius: 16px;
+        }
+
+        .dark-mode {
+            --text-main: #dfe6e9;
+            --text-sec: #b2bec3;
+            --bg-body: #1e1e2e;
+            --glass-bg: rgba(30, 30, 46, 0.95);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.4);
+            --primary-grad: linear-gradient(135deg, #4b5d67 0%, #322f3d 100%);
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+        }
+
+        /* Background Shapes for visual interest */
+        .bg-shape {
+            position: fixed;
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(80px);
+        }
+        .shape-1 { top: -100px; left: -100px; width: 400px; height: 400px; background: #764ba2; }
+        .shape-2 { bottom: -100px; right: -100px; width: 300px; height: 300px; background: #84fab0; }
+
+        /* =========================================
+           2. SHARED COMPONENTS
+           ========================================= */
+        nav {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--primary-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-sec);
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: #ffe0e0;
+            color: #d63031;
+            border-radius: 20px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .btn-theme { font-size: 1.2rem; background: transparent; padding: 5px; }
+
+        /* Page Layouts */
+        .page-container {
+            display: none;
+            padding: 30px 5%;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .active-page { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           3. LOGIN PAGE
+           ========================================= */
+        #login-page {
+            height: 90vh;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: var(--text-sec);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.8);
+            transition: 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #764ba2;
+            outline: none;
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-grad);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        .sub-text {
+            font-size: 0.8rem;
+            margin-top: 15px;
+            color: var(--text-sec);
+        }
+
+        /* =========================================
+           4. HOME PAGE (Subject Selection)
+           ========================================= */
+        .grid-subjects {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .subject-card {
+            background: var(--glass-bg);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            border-bottom: 4px solid transparent;
+            cursor: pointer;
+        }
+
+        .subject-card:hover {
+            transform: translateY(-5px);
+            border-bottom-color: #667eea;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .icon-large { font-size: 3rem; margin-bottom: 1rem; display: block; }
+        
+        .header-section h1 { font-size: 2rem; margin-bottom: 10px; }
+        .header-section p { color: var(--text-sec); }
+
+        /* =========================================
+           5. CONTENT PAGE (Chapters)
+           ========================================= */
+        .back-btn {
+            background: none; color: #764ba2; 
+            font-weight: 600; display: inline-flex; align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chapter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chapter-row {
+            background: var(--glass-bg);
+            padding: 1.2rem;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+        }
+
+        .badges .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-gray { background: #f3f4f6; color: #4b5563; }
+
+        .btn-group button {
+            padding: 8px 18px;
+            border-radius: 8px;
+            margin-left: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .btn-view { background: #e0f2fe; color: #0369a1; }
+        .btn-download { background: var(--secondary-grad); color: #0f3d36; }
+        .btn-disabled { background: #eee; color: #bbb; cursor: not-allowed; }
+        
+        /* =========================================
+           6. ADMIN DASHBOARD
+           ========================================= */
+        .admin-panel {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+            background: #f8fafc;
+        }
+
+        .loading-bar {
+            width: 100%; height: 6px; background: #eee;
+            margin-top: 15px; border-radius: 3px; overflow: hidden; display: none;
+        }
+        .progress-fill { height: 100%; background: #667eea; width: 0%; transition: width 0.3s; }
+
+        .delete-btn {
+            background: #fee2e2; color: #991b1b;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: var(--radius); text-align: center;
+            width: 90%; max-width: 350px; animation: scaleUp 0.3s ease;
+        }
+        .otp-box { 
+            font-size: 2rem; letter-spacing: 10px; font-weight: bold; color: #764ba2; 
+            margin: 20px 0; background: #f3f4f6; padding: 10px; border-radius: 8px;
+        }
+
+        @keyframes scaleUp { from {transform: scale(0.9); opacity:0} to {transform: scale(1); opacity:1}}
+        @media(max-width: 768px) {
+            .chapter-row { flex-direction: column; align-items: flex-start; gap: 10px;}
+            .btn-group { width: 100%; display: flex; gap: 10px; }
+            .btn-group button { flex: 1; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUND VISUALS -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo" onclick="app.goHome()">Notes</div>
+        <div class="user-controls">
+            <span id="user-display" class="user-badge"></span>
+            <button class="btn-theme" onclick="app.toggleTheme()">🌙</button>
+            <button id="btn-logout" class="btn-logout" onclick="auth.logout()">Logout</button>
+        </div>
+    </nav>
+
+    <!-- 1. LOGIN PAGE -->
+    <div id="login-page" class="active-page">
+        <div class="card">
+            <h1 style="color: #667eea; margin-bottom: 5px;">Welcome</h1>
+            <p style="color: #888; margin-bottom: 30px;">Class 9 CBSE Portal</p>
+            
+            <form onsubmit="auth.checkLogin(event)">
+                <div class="input-group">
+                    <label>Student Name</label>
+                    <input type="text" id="nameInput" placeholder="Enter your name" required>
+                </div>
+                <div class="input-group">
+                    <label>Email (Optional for Students)</label>
+                    <input type="email" id="emailInput" placeholder="Required only for Admin">
+                </div>
+                <button type="submit" class="btn-main">Enter Portal</button>
+            </form>
+            <p class="sub-text">Admin? Use admin email to access dashboard.</p>
+        </div>
+    </div>
+
+    <!-- OTP MODAL -->
+    <div id="otp-modal" class="modal">
+        <div class="modal-content">
+            <h3>Admin Verification</h3>
+            <p>One-Time Password</p>
+            <div id="otp-display" class="otp-box">000000</div>
+            <input type="number" id="otp-input" placeholder="Enter OTP code" style="text-align: center">
+            <button class="btn-main" onclick="auth.verifyOtp()">Verify</button>
+            <button onclick="document.getElementById('otp-modal').style.display='none'" style="background:none; margin-top:15px; color:#888;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- 2. HOME PAGE (SUBJECTS) -->
+    <div id="home-page" class="page-container">
+        <div class="header-section">
+            <h1 id="welcome-msg">Hello, Student!</h1>
+            <p>Select a subject to view notes and study materials.</p>
+        </div>
+
+        <div class="grid-subjects">
+            <div class="subject-card" onclick="app.goToSubject('Science')">
+                <span class="icon-large">🔬</span>
+                <h3>Science</h3>
+                <p>Physics, Chemistry, Biology</p>
+            </div>
+            <!-- Future subjects disabled visually -->
+            <div class="subject-card" style="opacity: 0.6; cursor: default;">
+                <span class="icon-large">➗</span>
+                <h3>Maths</h3>
+                <p>Coming Soon</p>
+            </div>
+            <div class="subject-card" style="opacity: 0.6; cursor: default;">
+                <span class="icon-large">🌍</span>
+                <h3>Social Sc.</h3>
+                <p>Coming Soon</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. NOTES LIST PAGE -->
+    <div id="notes-page" class="page-container">
+        <button class="back-btn" onclick="app.goHome()">← Back to Dashboard</button>
+        <h1 id="subject-title">Subject Notes</h1>
+        <div class="chapter-list" id="chapter-list-container">
+            <!-- Dynamic Content -->
+        </div>
+    </div>
+
+    <!-- 4. ADMIN DASHBOARD -->
+    <div id="admin-page" class="page-container">
+        <div class="header-section" style="margin-bottom: 20px; display:flex; justify-content:space-between;">
+            <div>
+                <h1>Admin Panel</h1>
+                <p>Upload PDFs (Uncapped Storage)</p>
+            </div>
+            <button class="btn-main" onclick="app.goHome()" style="width: auto; padding: 10px 20px;">View as Student</button>
+        </div>
+
+        <div class="admin-panel">
+            <div class="upload-area">
+                <h3 style="margin-bottom: 15px;">Upload Note</h3>
+                <select id="chapter-select" style="margin-bottom: 15px;">
+                    <!-- Filled dynamically -->
+                </select>
+                <input type="file" id="file-upload" accept="application/pdf" style="background: white;">
+                
+                <div id="upload-progress" class="loading-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p id="upload-status" style="margin-top:10px; font-size: 0.9rem; min-height: 20px;"></p>
+                
+                <button class="btn-main" onclick="database.uploadFile()" style="margin-top: 15px;">Upload to Database</button>
+            </div>
+
+            <h3 style="margin-bottom: 15px; border-top: 1px solid #eee; padding-top: 20px;">Manage Files</h3>
+            <div class="chapter-list" id="admin-file-list">
+                <!-- Admin List -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================
+        // CONFIG & CONSTANTS
+        // =========================================
+        const CONFIG = {
+            adminEmail: "kumarsinghr27314@gmail.com",
+            dbName: "NotesPortalDB_V1",
+            storeName: "notes_store"
+        };
+
+        const SUBJECT_DATA = {
+            "Science": [
+                "Matter in Our Surroundings", "Is Matter Around Us Pure", "Atoms and Molecules",
+                "Structure of the Atom", "The Fundamental Unit of Life", "Tissues", 
+                "Motion", "Force and Laws of Motion", "Gravitation", 
+                "Work and Energy", "Sound", "Improvement in Food Resources"
+            ]
+        };
+
+        // =========================================
+        // INDEXEDDB WRAPPER (FOR HUGE STORAGE)
+        // =========================================
+        const dbHelper = {
+            db: null,
+            
+            init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(CONFIG.dbName, 1);
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(CONFIG.storeName)) {
+                            db.createObjectStore(CONFIG.storeName, { keyPath: "id" });
+                        }
+                    };
+
+                    request.onsuccess = (event) => {
+                        this.db = event.target.result;
+                        resolve(this.db);
+                    };
+
+                    request.onerror = (event) => reject("DB Error: " + event.target.errorCode);
+                });
+            },
+
+            async saveFile(id, fileBlob, fileName) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction([CONFIG.storeName], "readwrite");
+                    const store = tx.objectStore(CONFIG.storeName);
+                    // We store Blob directly, browsers handle this efficiently
+                    const item = {
+                        id: id,
+                        file: fileBlob,
+                        name: fileName,
+                        date: new Date().toLocaleDateString(),
+                        size: (fileBlob.size / (1024*1024)).toFixed(2) + " MB"
+                    };
+                    store.put(item);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject();
+                });
+            },
+
+            async getFile(id) {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction([CONFIG.storeName], "readonly");
+                    const store = tx.objectStore(CONFIG.storeName);
+                    const req = store.get(id);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => resolve(null);
+                });
+            },
+
+            async deleteFile(id) {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction([CONFIG.storeName], "readwrite");
+                    const store = tx.objectStore(CONFIG.storeName);
+                    store.delete(id);
+                    tx.oncomplete = () => resolve();
+                });
+            },
+
+            async getAllKeys() {
+                return new Promise((resolve) => {
+                    const tx = this.db.transaction([CONFIG.storeName], "readonly");
+                    const store = tx.objectStore(CONFIG.storeName);
+                    const req = store.getAllKeys();
+                    req.onsuccess = () => resolve(req.result);
+                });
+            }
+        };
+
+        // =========================================
+        // AUTHENTICATION LOGIC
+        // =========================================
+        let generatedOtp = null;
+        let pendingUser = null;
+
+        const auth = {
+            checkLogin: (e) => {
+                e.preventDefault();
+                const name = document.getElementById('nameInput').value.trim();
+                const email = document.getElementById('emailInput').value.trim();
+
+                pendingUser = { name, email };
+
+                if(email.toLowerCase() === CONFIG.adminEmail.toLowerCase()) {
+                    // Admin Flow
+                    generatedOtp = Math.floor(100000 + Math.random() * 900000);
+                    document.getElementById('otp-display').textContent = generatedOtp;
+                    document.getElementById('otp-modal').style.display = 'flex';
+                } else {
+                    // Student Flow (No OTP)
+                    auth.finalizeLogin('student');
+                }
+            },
+
+            verifyOtp: () => {
+                const input = document.getElementById('otp-input').value;
+                if(input == generatedOtp) {
+                    document.getElementById('otp-modal').style.display = 'none';
+                    auth.finalizeLogin('admin');
+                } else {
+                    alert('Invalid OTP');
+                }
+            },
+
+            finalizeLogin: (role) => {
+                sessionStorage.setItem('notes_user', JSON.stringify({
+                    name: pendingUser.name,
+                    role: role,
+                    email: pendingUser.email
+                }));
+                app.init();
+            },
+
+            logout: () => {
+                sessionStorage.clear();
+                window.location.reload();
+            }
+        };
+
+        // =========================================
+        // APP LOGIC (NAVIGATION & UI)
+        // =========================================
+        const app = {
+            init: async () => {
+                await dbHelper.init(); // Init DB
+                const user = JSON.parse(sessionStorage.getItem('notes_user'));
+                
+                if (!user) {
+                    app.showPage('login-page');
+                } else {
+                    document.getElementById('user-display').textContent = `${user.name} (${user.role === 'admin' ? 'Admin' : 'Student'})`;
+                    document.getElementById('welcome-msg').textContent = `Hello, ${user.name} 👋`;
+                    document.getElementById('btn-logout').style.display = 'block';
+
+                    if (user.role === 'admin') {
+                        database.loadAdminPanel();
+                        app.showPage('admin-page');
+                    } else {
+                        app.showPage('home-page');
+                    }
+                }
+                
+                // Set Theme
+                if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+            },
+
+            showPage: (pageId) => {
+                document.querySelectorAll('.active-page').forEach(el => el.classList.remove('active-page'));
+                document.querySelectorAll('.page-container, #login-page').forEach(el => el.style.display = 'none');
+                
+                if(pageId === 'login-page') {
+                    document.getElementById('login-page').style.display = 'flex';
+                } else {
+                    document.getElementById(pageId).style.display = 'block';
+                    document.getElementById(pageId).classList.add('active-page');
+                }
+            },
+
+            goHome: () => {
+                const user = JSON.parse(sessionStorage.getItem('notes_user'));
+                if(user && user.role === 'admin') {
+                   // Optional: Decide where admin goes on logo click. Currently letting them go to home.
+                   if(document.getElementById('admin-page').style.display === 'block') {
+                       app.showPage('home-page'); 
+                   } else {
+                       app.showPage('admin-page');
+                   }
+                } else if(user) {
+                    app.showPage('home-page');
+                }
+            },
+
+            goToSubject: (subject) => {
+                document.getElementById('subject-title').innerText = `${subject} Notes (Class 9)`;
+                database.renderChapters(subject, 'student');
+                app.showPage('notes-page');
+            },
+
+            toggleTheme: () => {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            }
+        };
+
+        // =========================================
+        // DATABASE INTERACTION & RENDERING
+        // =========================================
+        const database = {
+            
+            // Render Chapters (Shared for Admin & Student logic mostly)
+            renderChapters: async (subject, viewMode) => {
+                const container = (viewMode === 'admin') 
+                    ? document.getElementById('admin-file-list') 
+                    : document.getElementById('chapter-list-container');
+                
+                container.innerHTML = '<p style="text-align:center; color:grey;">Loading data...</p>';
+                
+                const list = SUBJECT_DATA[subject];
+                let html = '';
+                
+                // Get all existing files efficiently
+                const keys = await dbHelper.getAllKeys();
+
+                for(let i=0; i<list.length; i++) {
+                    const chapterName = list[i];
+                    // Create ID specific to subject/chapter
+                    const fileId = `${subject}_${i}`; 
+                    const fileExists = keys.includes(fileId);
+                    
+                    if (viewMode === 'student') {
+                        html += `
+                        <div class="chapter-row">
+                            <div>
+                                <h4>${i+1}. ${chapterName}</h4>
+                                <div class="badges">
+                                    <span class="badge ${fileExists ? 'badge-green' : 'badge-gray'}">
+                                        ${fileExists ? 'Available' : 'Not Uploaded'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button class="${fileExists ? 'btn-view' : 'btn-disabled'}" 
+                                    onclick="database.handleAction('${fileId}', 'view', ${fileExists})">View</button>
+                                <button class="${fileExists ? 'btn-download' : 'btn-disabled'}" 
+                                    onclick="database.handleAction('${fileId}', 'download', ${fileExists})">Download</button>
+                            </div>
+                        </div>`;
+                    } else {
+                        // Admin List Item
+                        html += `
+                        <div class="chapter-row" style="border-left: 5px solid ${fileExists ? '#48bb78' : '#cbd5e1'}">
+                            <div>
+                                <strong>${i+1}. ${chapterName}</strong><br>
+                                <small>${fileExists ? '✅ File Uploaded' : '❌ Missing File'}</small>
+                            </div>
+                            ${fileExists ? `<button class="delete-btn" style="padding:5px 10px; border-radius:5px" onclick="database.deleteNote('${fileId}')">Delete</button>` : ''}
+                        </div>`;
+                    }
+                }
+                container.innerHTML = html;
+            },
+
+            handleAction: async (id, action, exists) => {
+                if(!exists) return;
+                
+                const data = await dbHelper.getFile(id);
+                if(!data) { alert("Error loading file"); return; }
+                
+                // Create Blob URL
+                const url = URL.createObjectURL(data.file);
+
+                if (action === 'view') {
+                    window.open(url, '_blank');
+                } else {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = data.name || "ChapterNote.pdf";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            },
+
+            // ADMIN SPECIFIC
+            loadAdminPanel: () => {
+                // Fill Select Box
+                const select = document.getElementById('chapter-select');
+                select.innerHTML = '';
+                SUBJECT_DATA['Science'].forEach((chap, idx) => {
+                    select.innerHTML += `<option value="Science_${idx}">${idx+1}. ${chap}</option>`;
+                });
+                
+                // Load List
+                database.renderChapters('Science', 'admin');
+            },
+
+            uploadFile: async () => {
+                const fileInput = document.getElementById('file-upload');
+                const file = fileInput.files[0];
+                const chapterId = document.getElementById('chapter-select').value;
+                const progressBar = document.getElementById('progress-fill');
+                const status = document.getElementById('upload-status');
+
+                if(!file || !chapterId) {
+                    alert("Please select a file and a chapter");
+                    return;
+                }
+                
+                if(file.type !== "application/pdf") {
+                    alert("Only PDF files allowed!");
+                    return;
+                }
+
+                // UI Loading state
+                document.getElementById('upload-progress').style.display = 'block';
+                progressBar.style.width = '30%';
+                status.innerText = "Processing file...";
+                
+                try {
+                    await dbHelper.saveFile(chapterId, file, file.name);
+                    
+                    progressBar.style.width = '100%';
+                    status.innerText = "Saved to Database successfully!";
+                    status.style.color = "green";
+                    
+                    // Reset
+                    setTimeout(() => {
+                        fileInput.value = '';
+                        document.getElementById('upload-progress').style.display = 'none';
+                        progressBar.style.width = '0';
+                        status.innerText = "";
+                        database.loadAdminPanel(); // Refresh list
+                    }, 1500);
+
+                } catch (e) {
+                    console.error(e);
+                    status.innerText = "Error saving. File might be too huge for this device.";
+                    status.style.color = "red";
+                }
+            },
+
+            deleteNote: async (id) => {
+                if(confirm("Are you sure you want to delete this file?")) {
+                    await dbHelper.deleteFile(id);
+                    database.loadAdminPanel();
+                }
+            }
+        };
+
+        // Initialize App on Load
+        document.addEventListener('DOMContentLoaded', app.init);
+
+    </script>
+</body>
+</html>
