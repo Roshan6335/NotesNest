@@ -34,12 +34,9 @@
       </div>
       <div class="actions">
         <button id="uploadBtn" class="btn btn-primary" type="button">Upload</button>
-        <button id="exportBtn" class="btn btn-secondary" type="button">Export Backup</button>
-        <label class="btn btn-secondary" for="importFile" style="display:inline-flex;align-items:center;">Import Backup</label>
-        <input id="importFile" type="file" accept="application/json" style="display:none;" />
       </div>
       <p id="uploadMessage" class="error"></p>
-      <p class="small">Tip: Export backup after upload. If you open this site on another browser/device, import backup once and all notes will appear there too.</p>
+      <p class="small">Cloud sync tries to share notes across devices (internet required). If cloud is blocked, notes still stay saved on this device.</p>
     </section>
 
     <section class="card" style="padding:1rem;overflow:auto;">
@@ -134,27 +131,6 @@
         }
       };
       reader.readAsDataURL(file);
-    });
-
-    document.getElementById('exportBtn').addEventListener('click', async () => {
-      await exportNotesData();
-    });
-
-    document.getElementById('importFile').addEventListener('change', async (event) => {
-      const msg = document.getElementById('uploadMessage');
-      const file = event.target.files[0];
-      if (!file) return;
-
-      try {
-        await importNotesData(file);
-        msg.textContent = 'Backup imported successfully.';
-        msg.classList.add('success');
-        refreshUploadList();
-      } catch (error) {
-        msg.textContent = 'Invalid backup file.';
-        msg.classList.remove('success');
-      }
-      event.target.value = '';
     });
 
     initThemeToggle();

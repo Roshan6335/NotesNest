@@ -2,10 +2,14 @@
 const NOTE_KEYS = {
   session: 'notenestSession',
   darkMode: 'notenestDarkMode',
-  pdfMapFallback: 'notenestSciencePdfsFallback'
+  pdfMapCache: 'notenestSciencePdfsCache'
 };
 
 const ADMIN_EMAIL = 'kumarsinghr27314@gmail.com';
+
+// Public cloud JSON endpoint used as shared storage across devices.
+// Anyone using this website reads/writes the same chapter notes.
+const CLOUD_ENDPOINT = 'https://jsonblob.com/api/jsonBlob/019c582e-8052-7ada-a9f9-6066930c1013';
 
 const SCIENCE_CHAPTERS = [
   'Matter in Our Surroundings',
@@ -55,126 +59,82 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-/* ------------------------------
-   IndexedDB storage for PDFs
-   ------------------------------ */
-const dbApi = {
-  dbName: 'NoteNestDB',
-  storeName: 'sciencePdfs',
+function getCachedMap() {
+  return JSON.parse(localStorage.getItem(NOTE_KEYS.pdfMapCache) || '{}');
+}
 
-  open() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(this.dbName, 1);
-      req.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          db.createObjectStore(this.storeName, { keyPath: 'chapter' });
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  },
+function setCachedMap(map) {
+  localStorage.setItem(NOTE_KEYS.pdfMapCache, JSON.stringify(map));
+}
 
-  async readAll() {
-    if (!window.indexedDB) {
-      return JSON.parse(localStorage.getItem(NOTE_KEYS.pdfMapFallback) || '{}');
-    }
+function sanitizeMap(raw) {
+  if (!raw || typeof raw !== 'object') return {};
 
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readonly');
-      const store = tx.objectStore(this.storeName);
-      const req = store.getAll();
-      req.onsuccess = () => {
-        const map = {};
-        req.result.forEach((item) => {
-          map[item.chapter] = {
-            filename: item.filename,
-            base64: item.base64,
-            uploadedAt: item.uploadedAt
-          };
-        });
-        resolve(map);
-      };
-      req.onerror = () => reject(req.error);
-    });
-  },
+  const clean = {};
+  SCIENCE_CHAPTERS.forEach((chapter) => {
+    const data = raw[chapter];
+    if (!data) return;
+    if (typeof data.base64 !== 'string') return;
+    clean[chapter] = {
+      filename: data.filename || `${chapter}.pdf`,
+      base64: data.base64,
+      uploadedAt: data.uploadedAt || new Date().toISOString()
+    };
+  });
+  return clean;
+}
 
-  async writeOne(chapter, data) {
-    if (!window.indexedDB) {
-      const map = JSON.parse(localStorage.getItem(NOTE_KEYS.pdfMapFallback) || '{}');
-      map[chapter] = data;
-      localStorage.setItem(NOTE_KEYS.pdfMapFallback, JSON.stringify(map));
-      return;
-    }
+async function readCloudMap() {
+  const response = await fetch(CLOUD_ENDPOINT, { method: 'GET', cache: 'no-store' });
+  if (!response.ok) throw new Error('Could not load cloud notes.');
+  const data = await response.json();
+  return sanitizeMap(data);
+}
 
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readwrite');
-      const store = tx.objectStore(this.storeName);
-      store.put({ chapter, ...data });
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  },
-
-  async deleteOne(chapter) {
-    if (!window.indexedDB) {
-      const map = JSON.parse(localStorage.getItem(NOTE_KEYS.pdfMapFallback) || '{}');
-      delete map[chapter];
-      localStorage.setItem(NOTE_KEYS.pdfMapFallback, JSON.stringify(map));
-      return;
-    }
-
-    const db = await this.open();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.storeName, 'readwrite');
-      tx.objectStore(this.storeName).delete(chapter);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-};
+async function writeCloudMap(map) {
+  const response = await fetch(CLOUD_ENDPOINT, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(map)
+  });
+  if (!response.ok) throw new Error('Could not save cloud notes.');
+}
 
 async function getPdfMap() {
-  return dbApi.readAll();
+  try {
+    const cloudMap = await readCloudMap();
+    setCachedMap(cloudMap);
+    return cloudMap;
+  } catch (error) {
+    // Offline or cloud issue: fallback to last local cache.
+    return getCachedMap();
+  }
 }
 
 async function savePdf(chapter, data) {
-  await dbApi.writeOne(chapter, data);
+  const latestMap = await getPdfMap();
+  latestMap[chapter] = {
+    filename: data.filename,
+    base64: data.base64,
+    uploadedAt: data.uploadedAt || new Date().toISOString()
+  };
+
+  try {
+    await writeCloudMap(latestMap);
+  } catch (error) {
+    // Keep local copy if cloud sync fails.
+  }
+  setCachedMap(latestMap);
 }
 
 async function deletePdf(chapter) {
-  await dbApi.deleteOne(chapter);
-}
+  const latestMap = await getPdfMap();
+  delete latestMap[chapter];
 
-// Export/import so admin can move notes to another browser/device manually.
-async function exportNotesData() {
-  const map = await getPdfMap();
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    app: 'NoteNest',
-    chapters: map
-  };
-  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'notenest-notes-backup.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-async function importNotesData(file) {
-  const text = await file.text();
-  const data = JSON.parse(text);
-  if (!data || !data.chapters || typeof data.chapters !== 'object') {
-    throw new Error('Invalid backup file format.');
+  try {
+    await writeCloudMap(latestMap);
+  } catch (error) {
+    // Keep local deletion if cloud sync fails.
   }
-
-  const chapters = data.chapters;
-  for (const chapter of Object.keys(chapters)) {
-    if (!SCIENCE_CHAPTERS.includes(chapter)) continue;
-    await savePdf(chapter, chapters[chapter]);
-  }
+  setCachedMap(latestMap);
 }
