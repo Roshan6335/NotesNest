@@ -1,601 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 9 Science Notes | CBSE Portal</title>
-    <!-- Modern Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* =========================================
-           1. MODERN CSS VARIABLES & RESET
-           ========================================= */
-        :root {
-            /* Colorful & Professional Palette */
-            --primary-grad: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-grad: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
-            --accent: #ff6b6b;
-            --text-main: #2d3436;
-            --text-sec: #636e72;
-            --bg-body: #f7f9fc;
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.3);
-            --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
-            --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
-            --radius: 16px;
-        }
-
-        .dark-mode {
-            --text-main: #dfe6e9;
-            --text-sec: #b2bec3;
-            --bg-body: #1e1e2e;
-            --glass-bg: rgba(30, 30, 46, 0.95);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.05);
-            --shadow-lg: 0 10px 40px rgba(0,0,0,0.4);
-            --primary-grad: linear-gradient(135deg, #4b5d67 0%, #322f3d 100%);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; flex-direction: column;
-            overflow-x: hidden;
-            transition: background 0.3s ease;
-        }
-
-        /* Shapes */
-        .bg-shape {
-            position: fixed; border-radius: 50%; z-index: -1;
-            opacity: 0.5; filter: blur(80px);
-        }
-        .shape-1 { top: -100px; left: -100px; width: 400px; height: 400px; background: #764ba2; }
-        .shape-2 { bottom: -100px; right: -100px; width: 300px; height: 300px; background: #84fab0; }
-
-        /* =========================================
-           2. SHARED COMPONENTS
-           ========================================= */
-        nav {
-            background: var(--glass-bg); backdrop-filter: blur(10px);
-            padding: 1rem 5%; border-bottom: var(--glass-border);
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 100;
-        }
-
-        .logo {
-            font-size: 1.6rem; font-weight: 700;
-            background: var(--primary-grad); -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; cursor: pointer;
-        }
-
-        .user-controls { display: flex; align-items: center; gap: 15px; }
-        .user-badge { font-size: 0.9rem; font-weight: 600; color: var(--text-sec); }
-        button { border: none; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; font-family: inherit; }
-        button:active { transform: scale(0.98); }
-
-        .btn-logout { padding: 6px 12px; background: #ffe0e0; color: #d63031; border-radius: 8px; font-weight: 600; font-size: 0.8rem; display: none; }
-        .btn-theme { font-size: 1.2rem; background: transparent; padding: 5px; }
-
-        /* Page Layout */
-        .page-container {
-            display: none; padding: 30px 5%; width: 100%; max-width: 1000px;
-            margin: 0 auto; animation: fadeIn 0.4s ease-out;
-        }
-        .active-page { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* =========================================
-           3. UI SECTIONS
-           ========================================= */
-        /* Login */
-        #login-page { height: 90vh; display: none; justify-content: center; align-items: center; flex-direction: column; }
-        .card {
-            background: var(--glass-bg); backdrop-filter: blur(10px);
-            padding: 3rem; border-radius: var(--radius); box-shadow: var(--shadow-lg);
-            border: var(--glass-border); width: 100%; max-width: 400px; text-align: center;
-        }
-        .input-group { text-align: left; margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--text-sec); }
-        input, select {
-            width: 100%; padding: 12px; border: 2px solid #e0e0e0;
-            border-radius: 10px; font-size: 1rem; background: rgba(255,255,255,0.8); transition: 0.3s;
-        }
-        input:focus { border-color: #764ba2; outline: none; }
-        .btn-main {
-            width: 100%; padding: 12px; background: var(--primary-grad);
-            color: white; border-radius: 10px; font-weight: 600; font-size: 1rem; margin-top: 10px;
-        }
-
-        /* Subjects */
-        .grid-subjects { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-top: 20px; }
-        .subject-card {
-            background: var(--glass-bg); padding: 2rem; border-radius: var(--radius);
-            box-shadow: var(--shadow-sm); border: var(--glass-border); text-align: center;
-            border-bottom: 4px solid transparent; cursor: pointer; transition: 0.3s;
-        }
-        .subject-card:hover { transform: translateY(-5px); border-bottom-color: #667eea; box-shadow: var(--shadow-lg); }
-        .icon-large { font-size: 3rem; margin-bottom: 1rem; display: block; }
-
-        /* Chapters */
-        .back-btn { background: none; color: #764ba2; font-weight: 600; display: inline-flex; align-items: center; margin-bottom: 20px; font-size: 1rem;}
-        .chapter-list { display: flex; flex-direction: column; gap: 15px; }
-        .chapter-row {
-            background: var(--glass-bg); padding: 1.2rem; border-radius: 12px;
-            border: var(--glass-border); display: flex; justify-content: space-between;
-            align-items: center; box-shadow: var(--shadow-sm); flex-wrap: wrap; gap: 10px;
-        }
-        .chapter-info h4 { font-size: 1rem; margin-bottom: 4px; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
-        .badge-green { background: #d1fae5; color: #065f46; }
-        .badge-gray { background: #f3f4f6; color: #9ca3af; }
-        .badge-type { background: #e0e7ff; color: #3730a3; margin-left: 5px;}
-
-        .btn-group button { padding: 8px 16px; border-radius: 8px; margin-left: 8px; font-size: 0.85rem; font-weight: 500; }
-        .btn-view { background: #e0f2fe; color: #0284c7; }
-        .btn-download { background: #ecfccb; color: #3f6212; }
-        .btn-disabled { background: #eee; color: #bbb; cursor: not-allowed; pointer-events: none;}
-        
-        /* Admin */
-        .admin-panel { background: var(--glass-bg); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow-lg); }
-        .upload-area { border: 2px dashed #cbd5e1; padding: 2rem; border-radius: 12px; text-align: center; margin: 20px 0; background: rgba(248, 250, 252, 0.5); }
-        .loading-bar { width: 100%; height: 6px; background: #eee; margin-top: 15px; border-radius: 3px; overflow: hidden; display: none; }
-        .progress-fill { height: 100%; background: #667eea; width: 0%; transition: width 0.3s; }
-        .delete-btn { background: #fee2e2; color: #991b1b; padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; }
-
-        /* Modal */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 2rem; border-radius: var(--radius); text-align: center; width: 90%; max-width: 350px; animation: scaleUp 0.3s ease; }
-        .otp-box { font-size: 2rem; letter-spacing: 8px; font-weight: bold; color: #764ba2; margin: 20px 0; background: #f3f4f6; padding: 10px; border-radius: 8px; }
-        @keyframes scaleUp { from {transform: scale(0.9); opacity:0} to {transform: scale(1); opacity:1}}
-
-        @media(max-width: 768px) {
-            .chapter-row { align-items: flex-start; }
-            .btn-group { width: 100%; display: flex; gap: 10px; margin-top: 10px; }
-            .btn-group button { flex: 1; margin: 0; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteNest | Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+<body class="gradient-page">
+  <main class="auth-layout">
+    <section class="card auth-card">
+      <h1 class="logo" style="text-align:center;margin:0;">NoteNest</h1>
+      <p style="text-align:center;margin-bottom:1.5rem;" class="small">Class 9 CBSE Notes Portal</p>
 
-    <!-- VISUALS -->
-    <div class="bg-shape shape-1"></div>
-    <div class="bg-shape shape-2"></div>
-
-    <!-- NAV -->
-    <nav>
-        <div class="logo" onclick="app.goHome()">CBSE Notes</div>
-        <div class="user-controls">
-            <span id="user-display" class="user-badge"></span>
-            <button class="btn-theme" onclick="app.toggleTheme()">🌓</button>
-            <button id="btn-logout" class="btn-logout" onclick="auth.logout()">Log Out</button>
+      <form id="loginForm">
+        <div class="field">
+          <label for="name">Name *</label>
+          <input id="name" required placeholder="Enter your name" />
         </div>
-    </nav>
-
-    <!-- LOGIN PAGE -->
-    <div id="login-page" class="active-page">
-        <div class="card">
-            <h1 style="color: #667eea; margin-bottom: 5px;">Portal Login</h1>
-            <p style="color: #888; margin-bottom: 30px;">Class 9 Science Resources</p>
-            <form onsubmit="auth.checkLogin(event)">
-                <div class="input-group">
-                    <label>Name</label>
-                    <input type="text" id="nameInput" placeholder="Student Name" required>
-                </div>
-                <div class="input-group">
-                    <label>Email (Only for Admin)</label>
-                    <input type="email" id="emailInput" placeholder="Optional">
-                </div>
-                <button type="submit" class="btn-main">Enter Portal</button>
-            </form>
+        <div class="field">
+          <label for="email">Gmail (optional)</label>
+          <input id="email" type="email" placeholder="you@gmail.com" />
         </div>
+        <button class="btn btn-primary" type="submit" style="width:100%;">Get OTP</button>
+        <p id="loginError" class="error"></p>
+      </form>
+    </section>
+  </main>
+
+  <div class="modal" id="otpModal" aria-hidden="true">
+    <div class="card modal-content">
+      <h3 style="margin-top:0;">OTP Verification</h3>
+      <p class="small">Use this OTP: <strong id="otpCode"></strong></p>
+      <div class="field">
+        <label for="otpInput">Enter 6-digit OTP</label>
+        <input id="otpInput" maxlength="6" inputmode="numeric" placeholder="123456" />
+      </div>
+      <button class="btn btn-primary" id="verifyOtp" type="button" style="width:100%;">Verify OTP</button>
+      <p id="otpError" class="error"></p>
     </div>
+  </div>
 
-    <!-- OTP MODAL -->
-    <div id="otp-modal" class="modal">
-        <div class="modal-content">
-            <h3>Admin Verification</h3>
-            <div id="otp-display" class="otp-box">------</div>
-            <input type="number" id="otp-input" placeholder="Enter Code shown above" style="text-align: center">
-            <button class="btn-main" onclick="auth.verifyOtp()">Verify Identity</button>
-            <button onclick="document.getElementById('otp-modal').style.display='none'" style="background:none; margin-top:15px; color:#888;">Cancel</button>
-        </div>
-    </div>
+  <footer class="footer">Made by Roshan with love ❤️</footer>
 
-    <!-- HOME PAGE -->
-    <div id="home-page" class="page-container">
-        <div class="header-section">
-            <h1 id="welcome-msg">Welcome</h1>
-            <p>Access your notes for the academic year 2025-26.</p>
-        </div>
-        <div class="grid-subjects">
-            <div class="subject-card" onclick="app.goToSubject('Science')">
-                <span class="icon-large">🔬</span>
-                <h3>Science</h3>
-                <p>Chemistry, Biology, Physics</p>
-            </div>
-            <div class="subject-card" style="opacity: 0.6;">
-                <span class="icon-large">➗</span>
-                <h3>Maths</h3>
-                <p>Coming Soon</p>
-            </div>
-            <div class="subject-card" style="opacity: 0.6;">
-                <span class="icon-large">📜</span>
-                <h3>Social Sc.</h3>
-                <p>Coming Soon</p>
-            </div>
-        </div>
-    </div>
+  <script src="common.js"></script>
+  <script>
+    let generatedOtp = '';
+    let pendingUser = null;
 
-    <!-- NOTES PAGE -->
-    <div id="notes-page" class="page-container">
-        <button class="back-btn" onclick="app.goHome()">← Dashboard</button>
-        <h1 id="subject-title">Subject Notes</h1>
-        <div class="chapter-list" id="chapter-list-container">
-            <!-- Dynamic Content -->
-        </div>
-    </div>
+    document.getElementById('loginForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
+      const loginError = document.getElementById('loginError');
 
-    <!-- ADMIN DASHBOARD -->
-    <div id="admin-page" class="page-container">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2>Admin Dashboard</h2>
-            <button class="btn-view" style="padding: 8px 16px;" onclick="app.goHome()">Student View</button>
-        </div>
+      if (!name) {
+        loginError.textContent = 'Name is required.';
+        return;
+      }
 
-        <div class="admin-panel">
-            <div class="upload-area">
-                <h3 style="margin-bottom: 10px;">Upload Notes</h3>
-                <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">Support: PDF (.pdf) or Screenshots (.png, .jpg)</p>
-                
-                <select id="chapter-select" style="margin-bottom: 15px;">
-                    <!-- Filled dynamically -->
-                </select>
-                <input type="file" id="file-upload" accept="application/pdf, image/*" style="background: white;">
-                
-                <div id="upload-progress" class="loading-bar"><div class="progress-fill" id="progress-fill"></div></div>
-                <p id="upload-status" style="margin-top:10px; font-size: 0.85rem; height: 20px;"></p>
-                
-                <button class="btn-main" onclick="database.uploadFile()" style="margin-top: 10px;">Save to Database</button>
-            </div>
+      loginError.textContent = '';
+      pendingUser = { name, email, isAdmin: email === ADMIN_EMAIL };
+      generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
+      document.getElementById('otpCode').textContent = generatedOtp;
+      document.getElementById('otpInput').value = '';
+      document.getElementById('otpError').textContent = '';
+      document.getElementById('otpModal').classList.add('open');
+    });
 
-            <h3>Existing Files</h3>
-            <div class="chapter-list" id="admin-file-list" style="margin-top:15px;"></div>
-        </div>
-    </div>
+    document.getElementById('verifyOtp').addEventListener('click', async () => {
+      const entered = document.getElementById('otpInput').value.trim();
+      const otpError = document.getElementById('otpError');
 
-    <script>
-        // =========================================
-        // 1. DATA CONFIGURATION (Based on Provided Notes)
-        // =========================================
-        const CONFIG = {
-            adminEmail: "kumarsinghr27314@gmail.com",
-            dbName: "ScienceNotesDB_V2",
-            storeName: "materials_store"
-        };
+      if (entered !== generatedOtp) {
+        otpError.textContent = 'Wrong OTP. Please try again.';
+        return;
+      }
 
-        const SUBJECT_DATA = {
-            "Science": [
-                "Matter in Our Surroundings", 
-                "Is Matter Around Us Pure", 
-                "Atoms and Molecules", 
-                "Structure of the Atom", 
-                "The Fundamental Unit of Life", 
-                "Tissues", 
-                "Motion", 
-                "Force and Laws of Motion", 
-                "Gravitation", 
-                "Work and Energy", 
-                "Sound", 
-                "Improvement in Food Resources"
-            ]
-        };
+      setSession({ ...pendingUser, loggedIn: true });
+      await registerUserLogin(pendingUser);
+      window.location.href = pendingUser.isAdmin ? 'admin.html' : 'home.html';
+    });
 
-        // =========================================
-        // 2. INDEXEDDB (STORAGE ENGINE)
-        // =========================================
-        const dbHelper = {
-            db: null,
-            init() {
-                return new Promise((resolve, reject) => {
-                    // Open V2 to force upgrade if needed
-                    const request = indexedDB.open(CONFIG.dbName, 2); 
-                    
-                    request.onupgradeneeded = (e) => {
-                        const db = e.target.result;
-                        if (!db.objectStoreNames.contains(CONFIG.storeName)) {
-                            db.createObjectStore(CONFIG.storeName, { keyPath: "id" });
-                        }
-                    };
-                    request.onsuccess = (e) => {
-                        this.db = e.target.result;
-                        resolve(this.db);
-                    };
-                    request.onerror = (e) => reject("DB Error");
-                });
-            },
-            saveFile(id, file, name) {
-                return new Promise((resolve, reject) => {
-                    const tx = this.db.transaction([CONFIG.storeName], "readwrite");
-                    const store = tx.objectStore(CONFIG.storeName);
-                    // Store File Blob + Type
-                    store.put({
-                        id: id,
-                        file: file,
-                        name: name,
-                        type: file.type, // Store MIME type
-                        date: new Date().toLocaleDateString()
-                    });
-                    tx.oncomplete = () => resolve();
-                    tx.onerror = (e) => reject(e);
-                });
-            },
-            getFile(id) {
-                return new Promise((resolve) => {
-                    const tx = this.db.transaction([CONFIG.storeName], "readonly");
-                    const store = tx.objectStore(CONFIG.storeName);
-                    const req = store.get(id);
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => resolve(null);
-                });
-            },
-            deleteFile(id) {
-                return new Promise((resolve) => {
-                    const tx = this.db.transaction([CONFIG.storeName], "readwrite");
-                    const store = tx.objectStore(CONFIG.storeName);
-                    store.delete(id);
-                    tx.oncomplete = () => resolve();
-                });
-            },
-            getAllKeys() {
-                return new Promise((resolve) => {
-                    const tx = this.db.transaction([CONFIG.storeName], "readonly");
-                    const store = tx.objectStore(CONFIG.storeName);
-                    const req = store.getAllKeys();
-                    req.onsuccess = () => resolve(req.result || []);
-                });
-            }
-        };
-
-        // =========================================
-        // 3. AUTH SYSTEM
-        // =========================================
-        let generatedOtp = null;
-        let pendingUser = null;
-
-        const auth = {
-            checkLogin: (e) => {
-                e.preventDefault();
-                const name = document.getElementById('nameInput').value.trim();
-                const email = document.getElementById('emailInput').value.trim();
-                
-                if(email.toLowerCase() === CONFIG.adminEmail.toLowerCase()) {
-                    pendingUser = { name, email, role: 'admin' };
-                    generatedOtp = Math.floor(100000 + Math.random() * 900000);
-                    document.getElementById('otp-display').textContent = generatedOtp;
-                    document.getElementById('otp-modal').style.display = 'flex';
-                } else {
-                    auth.finalize({ name, role: 'student' });
-                }
-            },
-            verifyOtp: () => {
-                const input = document.getElementById('otp-input').value;
-                if(input == generatedOtp) {
-                    document.getElementById('otp-modal').style.display = 'none';
-                    auth.finalize(pendingUser);
-                } else {
-                    alert("Incorrect Code");
-                }
-            },
-            finalize: (user) => {
-                sessionStorage.setItem('cbsenotes_user', JSON.stringify(user));
-                app.init();
-            },
-            logout: () => {
-                sessionStorage.clear();
-                window.location.reload();
-            }
-        };
-
-        // =========================================
-        // 4. APP CONTROLLER
-        // =========================================
-        const app = {
-            user: null,
-            init: async () => {
-                await dbHelper.init();
-                app.user = JSON.parse(sessionStorage.getItem('cbsenotes_user'));
-                
-                // Theme Check
-                if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
-
-                if (!app.user) {
-                    app.showPage('login-page');
-                } else {
-                    document.getElementById('user-display').textContent = `${app.user.name}`;
-                    document.getElementById('welcome-msg').textContent = `Hello, ${app.user.name} 👋`;
-                    document.getElementById('btn-logout').style.display = 'block';
-
-                    if (app.user.role === 'admin') {
-                        database.loadAdminPanel();
-                        app.showPage('admin-page');
-                    } else {
-                        app.showPage('home-page');
-                    }
-                }
-            },
-            showPage: (pageId) => {
-                document.querySelectorAll('.active-page').forEach(el => el.classList.remove('active-page'));
-                document.querySelectorAll('.page-container, #login-page').forEach(el => el.style.display = 'none');
-                
-                const page = document.getElementById(pageId);
-                page.style.display = (pageId === 'login-page') ? 'flex' : 'block';
-                // Trigger reflow
-                setTimeout(() => page.classList.add('active-page'), 10);
-            },
-            goHome: () => {
-                if(!app.user) return;
-                // If admin is clicking home, they usually go to admin panel, but can go to subject selection too
-                app.showPage('home-page');
-            },
-            goToSubject: (subject) => {
-                document.getElementById('subject-title').innerText = `${subject} Class 9`;
-                database.renderChapters(subject, 'student');
-                app.showPage('notes-page');
-            },
-            toggleTheme: () => {
-                document.body.classList.toggle('dark-mode');
-                localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-            }
-        };
-
-        // =========================================
-        // 5. DATABASE & RENDER LOGIC
-        // =========================================
-        const database = {
-            
-            renderChapters: async (subject, viewMode) => {
-                const container = (viewMode === 'admin') 
-                    ? document.getElementById('admin-file-list') 
-                    : document.getElementById('chapter-list-container');
-                
-                container.innerHTML = '<p style="text-align:center; color:grey; padding:20px;">Scanning Database...</p>';
-                
-                const chapters = SUBJECT_DATA[subject];
-                const existingIds = await dbHelper.getAllKeys();
-                
-                let html = '';
-                
-                // Sort checks to map array
-                for(let i=0; i<chapters.length; i++) {
-                    const chapterName = chapters[i];
-                    const id = `${subject}_${i}`;
-                    const hasFile = existingIds.includes(id);
-
-                    if (viewMode === 'student') {
-                        // STUDENT VIEW
-                        html += `
-                        <div class="chapter-row">
-                            <div class="chapter-info">
-                                <h4>${i+1}. ${chapterName}</h4>
-                                <span class="badge ${hasFile ? 'badge-green' : 'badge-gray'}">
-                                    ${hasFile ? 'Ready to View' : 'Pending Upload'}
-                                </span>
-                            </div>
-                            <div class="btn-group">
-                                <button class="${hasFile ? 'btn-view' : 'btn-disabled'}" 
-                                    onclick="database.handleAction('${id}', 'view')">
-                                    👁 View
-                                </button>
-                                <button class="${hasFile ? 'btn-download' : 'btn-disabled'}" 
-                                    onclick="database.handleAction('${id}', 'download')">
-                                    ⬇ Save
-                                </button>
-                            </div>
-                        </div>`;
-                    } else {
-                        // ADMIN VIEW
-                        html += `
-                        <div class="chapter-row" style="border-left: 4px solid ${hasFile ? '#48bb78' : '#cbd5e1'};">
-                            <div class="chapter-info">
-                                <h4>${i+1}. ${chapterName}</h4>
-                                <small>${hasFile ? '✅ Content Uploaded' : '❌ Empty Slot'}</small>
-                            </div>
-                            ${hasFile ? 
-                                `<button class="delete-btn" onclick="database.deleteNote('${id}')">Remove File</button>` : 
-                                `<span style="font-size:0.8rem; color:#aaa">Select above to upload</span>`
-                            }
-                        </div>`;
-                    }
-                }
-                container.innerHTML = html;
-            },
-
-            loadAdminPanel: () => {
-                const select = document.getElementById('chapter-select');
-                select.innerHTML = '<option value="">-- Select Chapter to Upload To --</option>';
-                SUBJECT_DATA['Science'].forEach((chap, idx) => {
-                    select.innerHTML += `<option value="Science_${idx}">${idx+1}. ${chap}</option>`;
-                });
-                database.renderChapters('Science', 'admin');
-            },
-
-            handleAction: async (id, action) => {
-                const data = await dbHelper.getFile(id);
-                if(!data) { alert("File not found"); return; }
-                
-                const url = URL.createObjectURL(data.file);
-
-                if (action === 'view') {
-                    // Logic to check if it's PDF or Image
-                    const type = data.type || "application/pdf";
-                    if(type.startsWith('image/')) {
-                         const win = window.open();
-                         win.document.write(`<title>${data.name}</title><img src="${url}" style="width:100%">`);
-                    } else {
-                        window.open(url, '_blank');
-                    }
-                } else {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = data.name || "ChapterNote";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                }
-            },
-
-            uploadFile: async () => {
-                const fileInput = document.getElementById('file-upload');
-                const file = fileInput.files[0];
-                const chapterId = document.getElementById('chapter-select').value;
-                const status = document.getElementById('upload-status');
-                const pBar = document.getElementById('progress-fill');
-                const pContainer = document.getElementById('upload-progress');
-
-                if(!chapterId || !file) {
-                    alert("Select a chapter and a file."); return;
-                }
-
-                pContainer.style.display = 'block';
-                pBar.style.width = '20%';
-                status.innerText = "Processing...";
-                status.style.color = "var(--text-sec)";
-
-                try {
-                    await dbHelper.saveFile(chapterId, file, file.name);
-                    
-                    pBar.style.width = '100%';
-                    status.innerText = "Success! File saved.";
-                    status.style.color = "green";
-
-                    setTimeout(() => {
-                        fileInput.value = '';
-                        pContainer.style.display = 'none';
-                        pBar.style.width = '0';
-                        status.innerText = "";
-                        database.renderChapters('Science', 'admin');
-                    }, 1500);
-                } catch (e) {
-                    console.error(e);
-                    pBar.style.width = '0%';
-                    status.innerText = "Failed. File might be too large (Browser Limit).";
-                    status.style.color = "red";
-                }
-            },
-
-            deleteNote: async (id) => {
-                if(confirm("Delete this note? Students won't see it anymore.")) {
-                    await dbHelper.deleteFile(id);
-                    database.renderChapters('Science', 'admin');
-                }
-            }
-        };
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', app.init);
-    </script>
+    // Close modal when background is clicked.
+    document.getElementById('otpModal').addEventListener('click', (event) => {
+      if (event.target.id === 'otpModal') {
+        document.getElementById('otpModal').classList.remove('open');
+      }
+    });
+  </script>
 </body>
 </html>

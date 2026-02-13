@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteNest | Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div>
+        <div class="logo">Admin Panel</div>
+        <div class="small" id="adminEmail"></div>
+      </div>
+      <div class="actions">
+        <button id="themeToggle" class="btn btn-secondary" type="button">🌓 Dark Mode</button>
+        <button class="btn btn-danger" type="button" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <section class="card" style="padding:1rem 1.1rem;margin-bottom:1rem;">
+      <h3 style="margin-top:0;">Upload Chapter PDF</h3>
+      <div class="field">
+        <label for="chapterName">Chapter Name</label>
+        <select id="chapterName"></select>
+      </div>
+      <div class="field">
+        <label for="pdfFile">PDF File</label>
+        <input id="pdfFile" type="file" accept="application/pdf,.pdf" />
+      </div>
+      <div class="actions">
+        <button id="uploadBtn" class="btn btn-primary" type="button">Upload</button>
+        <button id="exportBackupBtn" class="btn btn-secondary" type="button">Export Backup</button>
+        <label class="btn btn-secondary" for="importBackupInput" style="display:inline-flex;align-items:center;">Import Backup</label>
+        <input id="importBackupInput" type="file" accept="application/json" style="display:none;" />
+        <button id="cloudBackupBtn" class="btn btn-secondary" type="button">Create Cloud Backup</button>
+        <button id="restoreCloudBackupBtn" class="btn btn-secondary" type="button">Restore Cloud Backup</button>
+      </div>
+      <p id="uploadMessage" class="error"></p>
+      <p class="small">Large files: saved in local device DB first, then cloud sync is attempted. Backup options are provided to avoid data loss.</p>
+    </section>
+
+    <section class="card" style="padding:1rem;overflow:auto;margin-bottom:1rem;">
+      <h3 style="margin-top:0;">Uploaded Chapters</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Chapter</th>
+            <th>File Name</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="uploadList"></tbody>
+      </table>
+    </section>
+
+    <section class="card" style="padding:1rem;overflow:auto;">
+      <h3 style="margin-top:0;">Users Login List</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Gmail</th>
+            <th>IP</th>
+            <th>Last Login</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody id="usersList"></tbody>
+      </table>
+    </section>
+
+    <footer class="footer">Made by Roshan with love ❤️</footer>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    const session = getSession();
+    if (!session?.loggedIn || !session?.isAdmin || session.email !== ADMIN_EMAIL) {
+      window.location.href = 'index.html';
+    }
+
+    document.getElementById('adminEmail').textContent = `Logged in as: ${session.email}`;
+
+    const chapterSelect = document.getElementById('chapterName');
+    SCIENCE_CHAPTERS.forEach((chapter) => {
+      const option = document.createElement('option');
+      option.value = chapter;
+      option.textContent = chapter;
+      chapterSelect.appendChild(option);
+    });
+
+    function setMessage(text, isSuccess = false) {
+      const msg = document.getElementById('uploadMessage');
+      msg.textContent = text;
+      if (isSuccess) msg.classList.add('success');
+      else msg.classList.remove('success');
+    }
+
+    async function refreshUploadList() {
+      const map = await getPdfMap();
+      const tbody = document.getElementById('uploadList');
+      tbody.innerHTML = '';
+
+      SCIENCE_CHAPTERS.forEach((chapter) => {
+        if (!map[chapter]) return;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${chapter}</td>
+          <td>${map[chapter].filename}</td>
+          <td><button class="btn btn-danger" type="button">Delete</button></td>
+        `;
+        row.querySelector('button').addEventListener('click', async () => {
+          const result = await deletePdf(chapter);
+          setMessage(result.cloudSynced ? 'Deleted from cloud + local.' : 'Deleted locally. Cloud unavailable.', true);
+          refreshUploadList();
+        });
+        tbody.appendChild(row);
+      });
+    }
+
+    async function refreshUsersList() {
+      const users = await getUserList();
+      const tbody = document.getElementById('usersList');
+      tbody.innerHTML = '';
+
+      users
+        .sort((a, b) => new Date(b.lastLoginAt) - new Date(a.lastLoginAt))
+        .forEach((user) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${user.name}</td>
+            <td>${user.email || 'Not provided'}</td>
+            <td>${user.ip || 'Not available'}</td>
+            <td>${new Date(user.lastLoginAt).toLocaleString()}</td>
+            <td>${user.loginCount || 1}</td>
+          `;
+          tbody.appendChild(row);
+        });
+    }
+
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+      const file = document.getElementById('pdfFile').files[0];
+      const chapter = chapterSelect.value;
+
+      if (!file) {
+        setMessage('Please choose a PDF file.');
+        return;
+      }
+
+      const looksLikePdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      if (!looksLikePdf) {
+        setMessage('Only PDF files are allowed.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const result = await savePdf(chapter, {
+            filename: file.name,
+            base64: String(reader.result),
+            uploadedAt: new Date().toISOString(),
+            size: file.size
+          });
+
+          if (result.cloudSynced) {
+            setMessage('Upload successful. Synced to cloud + local.', true);
+          } else {
+            setMessage('Uploaded locally. Cloud sync failed (notes still safe on this device).', true);
+          }
+
+          document.getElementById('pdfFile').value = '';
+          refreshUploadList();
+        } catch (error) {
+          setMessage('Upload failed. Try again with stable internet.');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('exportBackupBtn').addEventListener('click', async () => {
+      await exportBackupFile();
+      setMessage('Backup exported successfully.', true);
+    });
+
+    document.getElementById('importBackupInput').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        await importBackupFile(file);
+        setMessage('Backup imported successfully.', true);
+        refreshUploadList();
+        refreshUsersList();
+      } catch (error) {
+        setMessage('Backup import failed. Invalid file.');
+      }
+      event.target.value = '';
+    });
+
+    document.getElementById('cloudBackupBtn').addEventListener('click', async () => {
+      try {
+        await createCloudBackup();
+        setMessage('Cloud backup created.', true);
+      } catch (error) {
+        setMessage('Cloud backup failed.');
+      }
+    });
+
+    document.getElementById('restoreCloudBackupBtn').addEventListener('click', async () => {
+      try {
+        await restoreCloudBackup();
+        setMessage('Cloud backup restored.', true);
+        refreshUploadList();
+        refreshUsersList();
+      } catch (error) {
+        setMessage('Restore failed. Backup not available.');
+      }
+    });
+
+    initThemeToggle();
+    refreshUploadList();
+    refreshUsersList();
+  </script>
+</body>
+</html>
