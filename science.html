@@ -45,8 +45,8 @@
     const session = getSession();
     if (!session?.loggedIn) window.location.href = 'index.html';
 
-    function renderScienceChapters() {
-      const map = getPdfMap();
+    async function renderScienceChapters() {
+      const map = await getPdfMap();
       const body = document.querySelector('#chapterTable tbody');
       body.innerHTML = '';
 

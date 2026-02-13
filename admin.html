@@ -30,10 +30,16 @@
       </div>
       <div class="field">
         <label for="pdfFile">PDF File</label>
-        <input id="pdfFile" type="file" accept="application/pdf" />
+        <input id="pdfFile" type="file" accept="application/pdf,.pdf" />
       </div>
-      <button id="uploadBtn" class="btn btn-primary" type="button">Upload</button>
+      <div class="actions">
+        <button id="uploadBtn" class="btn btn-primary" type="button">Upload</button>
+        <button id="exportBtn" class="btn btn-secondary" type="button">Export Backup</button>
+        <label class="btn btn-secondary" for="importFile" style="display:inline-flex;align-items:center;">Import Backup</label>
+        <input id="importFile" type="file" accept="application/json" style="display:none;" />
+      </div>
       <p id="uploadMessage" class="error"></p>
+      <p class="small">Tip: Export backup after upload. If you open this site on another browser/device, import backup once and all notes will appear there too.</p>
     </section>
 
     <section class="card" style="padding:1rem;overflow:auto;">
@@ -70,8 +76,8 @@
       chapterSelect.appendChild(option);
     });
 
-    function refreshUploadList() {
-      const map = getPdfMap();
+    async function refreshUploadList() {
+      const map = await getPdfMap();
       const tbody = document.getElementById('uploadList');
       tbody.innerHTML = '';
 
@@ -83,10 +89,8 @@
           <td>${map[chapter].filename}</td>
           <td><button class="btn btn-danger" type="button">Delete</button></td>
         `;
-        row.querySelector('button').addEventListener('click', () => {
-          const updated = getPdfMap();
-          delete updated[chapter];
-          setPdfMap(updated);
+        row.querySelector('button').addEventListener('click', async () => {
+          await deletePdf(chapter);
           refreshUploadList();
         });
         tbody.appendChild(row);
@@ -98,26 +102,59 @@
       const chapter = chapterSelect.value;
       const msg = document.getElementById('uploadMessage');
 
-      if (!file || file.type !== 'application/pdf') {
-        msg.textContent = 'Please choose a valid PDF file.';
+      if (!file) {
+        msg.textContent = 'Please choose a PDF file.';
+        msg.classList.remove('success');
+        return;
+      }
+
+      // Some browsers provide empty type for local files, so allow .pdf extension too.
+      const looksLikePdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      if (!looksLikePdf) {
+        msg.textContent = 'Only PDF files are allowed.';
+        msg.classList.remove('success');
         return;
       }
 
       const reader = new FileReader();
-      reader.onload = () => {
-        const map = getPdfMap();
-        map[chapter] = {
-          filename: file.name,
-          base64: String(reader.result),
-          uploadedAt: new Date().toISOString()
-        };
-        setPdfMap(map);
-        msg.textContent = 'Upload successful.';
-        msg.classList.add('success');
-        document.getElementById('pdfFile').value = '';
-        refreshUploadList();
+      reader.onload = async () => {
+        try {
+          await savePdf(chapter, {
+            filename: file.name,
+            base64: String(reader.result),
+            uploadedAt: new Date().toISOString()
+          });
+          msg.textContent = 'Upload successful.';
+          msg.classList.add('success');
+          document.getElementById('pdfFile').value = '';
+          refreshUploadList();
+        } catch (error) {
+          msg.textContent = 'Upload failed. Try a smaller file.';
+          msg.classList.remove('success');
+        }
       };
       reader.readAsDataURL(file);
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+      await exportNotesData();
+    });
+
+    document.getElementById('importFile').addEventListener('change', async (event) => {
+      const msg = document.getElementById('uploadMessage');
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        await importNotesData(file);
+        msg.textContent = 'Backup imported successfully.';
+        msg.classList.add('success');
+        refreshUploadList();
+      } catch (error) {
+        msg.textContent = 'Invalid backup file.';
+        msg.classList.remove('success');
+      }
+      event.target.value = '';
     });
 
     initThemeToggle();
